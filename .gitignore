@@ -1,0 +1,55 @@
+# Archivos generados por Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+
+# Archivos de cache de Unity
+UserSettings/
+
+# Archivos creados por Visual Studio/VSCode
+.vscode/
+*.csproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de configuración de IDE
+.idea/
+*.iml
+
+# Archivos de configuración de JetBrains Rider
+.idea/
+
+# Archivos generados por Unity Package Manager
+*.unitypackage
+
+# Archivos de logs o depuración
+*.log
+*.stacktrace
+
+# Exportaciones
+*.apk
+*.aab
+*.ipa
+
+# Archivos de respaldo
+*.bak
+*.backup
+
+# Archivos generados por Git
+!.gitignore
