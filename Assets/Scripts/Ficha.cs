@@ -7,11 +7,13 @@ public class Movimiento {
     public int fila { get; set; }
     public int columna { get; set; }
     public List<Tuple<int, int>> capturas { get; set; }
+    public List<Tuple<int, int>> movimientosIntermedios { get; set; }
 
     public Movimiento(int fila, int columna) {
         this.fila = fila;
         this.columna = columna;
         capturas = new List<Tuple<int, int>>();
+        movimientosIntermedios = new List<Tuple<int, int>>();
     }
 }
 
@@ -37,6 +39,7 @@ public class Ficha : MonoBehaviour {
         if ((esBlanca && tableroComponente.getTurno() == "BLANCAS") || (!esBlanca && tableroComponente.getTurno() == "NEGRAS")) {
             fichaRenderer.material.color = Color.green;
             calcularMovimientosPosibles(posicionFila, posicionColumna);
+            mostrarMovimientosPosibles();
         }
     }
 
@@ -96,13 +99,11 @@ public class Ficha : MonoBehaviour {
                         GameObject casilla = tableroComponente.getTablero()[captura.Item1, captura.Item2];
                         Casilla casillaComponente = casilla.GetComponent<Casilla>();
 
-                        // Obtener la ficha asociada a la casilla y destruirla
                         Ficha fichaCapturada = casillaComponente.getFicha();
-                        tableroComponente.getTablero()[fichaCapturada.posicionFila, fichaCapturada.posicionColumna].GetComponent<Casilla>().liberarCasilla();
+                        casillaComponente.liberarCasilla();
                         if (fichaCapturada != null) {
                             Destroy(fichaCapturada.gameObject);
                         }
-
                     }
                 }
 
@@ -152,7 +153,7 @@ public class Ficha : MonoBehaviour {
                     movimientos.Add(new Movimiento(filaSiguiente, columnaAnterior));
                 } else {
                     // Si la casilla está ocupada, comprobamos si la ficha es del color contrario
-                    comprobarComerFicha(tablero, filaSiguiente, columnaAnterior, esBlanca ? filaSiguiente + 1 : filaSiguiente - 1, columnaAnterior - 1 );
+                    comprobarComerFicha(tablero, (posicionFila, posicionColumna), (filaSiguiente, columnaAnterior), (esBlanca ? filaSiguiente + 1 : filaSiguiente - 1, columnaAnterior - 1) );
                 }
             }
 
@@ -161,29 +162,64 @@ public class Ficha : MonoBehaviour {
 
                 if (!estaOcupada) {
                     // Resaltamos la casilla azul si es válida para movimiento
-                    tablero[filaSiguiente, columnaSiguiente].GetComponent<Renderer>().material.color = Color.blue;
                     movimientos.Add(new Movimiento(filaSiguiente, columnaSiguiente));
                 } else {
                     // Si la casilla está ocupada, comprobamos si la ficha es del color contrario
-                    comprobarComerFicha(tablero, filaSiguiente, columnaSiguiente, esBlanca ? filaSiguiente + 1 : filaSiguiente - 1, columnaSiguiente + 1 );
+                    comprobarComerFicha(tablero, (posicionFila, posicionColumna), (filaSiguiente, columnaSiguiente),( esBlanca ? filaSiguiente + 1 : filaSiguiente - 1, columnaSiguiente + 1) );
                 }
             }
         }
     }
 
-    void comprobarComerFicha(GameObject[,] tablero, int filaOcupada, int columnaOcupada, int filaLibre, int columnaLibre) {
-        if(filaLibre < 0 || filaLibre >= 10 || columnaLibre < 0 || columnaLibre >= 10) {
+    void comprobarComerFicha(GameObject[,] tablero, (int fila, int columna) posicionFicha, (int fila, int columna) ocupada, (int fila, int columna) libre, Movimiento movimientoAnterior = null) {
+        if(ocupada.fila < 0 || ocupada.fila >= 10 || ocupada.columna < 0 || ocupada.columna >= 10) {
+            return;
+        }
+
+        if(libre.fila < 0 || libre.fila >= 10 || ocupada.columna < 0 || ocupada.columna >= 10) {
             return;
         }
         
-        bool esFichaBlanca = tablero[filaOcupada, columnaOcupada].GetComponent<Casilla>().esFichaBlanca();
+        bool esFichaBlanca = tablero[ocupada.fila, ocupada.columna].GetComponent<Casilla>().esFichaBlanca();
 
-        if (esBlanca != esFichaBlanca && !casillaOcupada(filaLibre, columnaLibre)) {
-            tablero[filaLibre, columnaLibre].GetComponent<Renderer>().material.color = Color.blue;
-            Movimiento movimiento = new Movimiento(filaLibre, columnaLibre);
-            movimiento.capturas.Add(new Tuple<int, int>(filaOcupada, columnaOcupada));
+
+        if (casillaOcupada(ocupada.fila, ocupada.columna) && esBlanca != esFichaBlanca && !casillaOcupada(libre.fila, libre.columna)) {  
+            Movimiento movimiento = new Movimiento(libre.fila, libre.columna);
+            movimiento.capturas.Add(new Tuple<int, int>(ocupada.fila, ocupada.columna));
+            movimiento.movimientosIntermedios.Add(new Tuple<int, int>(posicionFicha.fila, posicionFicha.columna));
+
+            if(movimientoAnterior != null) {
+                foreach (var captura in movimientoAnterior.capturas) {
+                    movimiento.capturas.Add(captura);
+                }
+
+                foreach (var movimientoIntermedio in movimientoAnterior.movimientosIntermedios) {
+                    movimiento.movimientosIntermedios.Add(movimientoIntermedio);
+                }
+
+                if (movimientos.Contains(movimientoAnterior)) {
+                    movimientos.Remove(movimientoAnterior);
+                }
+            }
+
             movimientos.Add(movimiento);
-        }
+
+            comprobarComerFicha(
+                tablero, 
+                libre, 
+                (esBlanca ? libre.fila + 1 : libre.fila - 1, libre.columna - 1), 
+                (esBlanca ? libre.fila + 2 : libre.fila - 2, libre.columna - 2), 
+                movimiento
+            );
+
+            comprobarComerFicha(
+                tablero, 
+                libre, 
+                (esBlanca ? libre.fila + 1 : libre.fila - 1, libre.columna + 1), 
+                (esBlanca ? libre.fila + 2 : libre.fila - 2, libre.columna + 2), 
+                movimiento
+            );
+       }
     }
 
     bool casillaOcupada(int fila, int columna) {
@@ -191,11 +227,26 @@ public class Ficha : MonoBehaviour {
         return tablero[fila, columna].GetComponent<Casilla>().getOcupada();
     }
 
+    void mostrarMovimientosPosibles() {
+        GameObject[,] tablero = tableroComponente.getTablero();
+        foreach (var movimiento in movimientos) {
+            tablero[movimiento.fila, movimiento.columna].GetComponent<Renderer>().material.color = Color.blue;
+
+            foreach (var movimientoIntermedio in movimiento.movimientosIntermedios) {
+                tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].GetComponent<Renderer>().material.color = Color.green;
+            }
+        }
+    }
+
     void limpiarMovimientosPosibles() {
         // Limpiamos los movimientos posibles (restaurando color de las casillas)
         GameObject[,] tablero = tableroComponente.getTablero();
         foreach (var movimiento in movimientos) {
             tablero[movimiento.fila, movimiento.columna].GetComponent<Renderer>().material.color = Color.red;
+
+            foreach (var movimientoIntermedio in movimiento.movimientosIntermedios) {
+                tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].GetComponent<Renderer>().material.color = Color.red;
+            }
         }
         movimientos.Clear();
     }

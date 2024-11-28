@@ -5,8 +5,8 @@ public class Casilla : MonoBehaviour
     int posicionColumna;
     int posicionFila;
 
-    bool ocupada = false;
-    bool fichaBlanca = false;
+    public bool ocupada = false;
+    public bool fichaBlanca = false;
     Ficha ficha;
     
     public void setPosicion(int fila, int columna) {

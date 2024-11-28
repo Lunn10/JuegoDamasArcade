@@ -15,6 +15,7 @@ public class GenerarTablero : MonoBehaviour {
     private int fichasColocadasNegras;
     public Material materialNegro;
     public Material materialRojo;
+
     void Start() {
         // Llamar a la función para generar el tablero
         tablero = new GameObject[filas, columnas];
