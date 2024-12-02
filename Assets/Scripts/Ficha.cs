@@ -34,13 +34,14 @@ public class Ficha : MonoBehaviour {
     private int posicionColumna;
     private int posicionFila;
     private bool esBlanca = false;
-    private bool esDama = true;
+    private bool esDama = false;
     private Renderer fichaRenderer;
     private Color colorOriginal;
     private GenerarTablero tableroComponente;
     private List<Movimiento> movimientos = new List<Movimiento>();
     private Vector3 posicionOriginal; // Posición original de la ficha
     private bool estaSiendoArrastrada = false; // Bandera para saber si la ficha está siendo arrastrada
+    public ParticleSystem particulas;
 
     void Start() {
         fichaRenderer = GetComponent<Renderer>();
@@ -49,6 +50,8 @@ public class Ficha : MonoBehaviour {
     }
 
     void OnMouseEnter() {
+        limpiarMovimientosPosibles();
+
         if ((esBlanca && tableroComponente.getTurno() == "BLANCAS") || (!esBlanca && tableroComponente.getTurno() == "NEGRAS")) {
             fichaRenderer.material.color = Color.green;
             calcularMovimientosPosibles(posicionFila, posicionColumna);
@@ -87,6 +90,13 @@ public class Ficha : MonoBehaviour {
             estaSiendoArrastrada = false;
             fichaRenderer.material.color = colorOriginal;
         }
+    }
+
+    void OnDestroy() {
+
+        ParticleSystem particulasInstanciadas = Instantiate(particulas, transform.position, Quaternion.identity);
+        particulasInstanciadas.GetComponent<ParticleSystemRenderer>().material.color = fichaRenderer.material.color;
+        Destroy(particulasInstanciadas, particulasInstanciadas.main.duration);
     }
 
     public void fichaBlanca() {
@@ -140,14 +150,7 @@ public class Ficha : MonoBehaviour {
 
             if(movimientoSeleccionado.capturas.Count > 0) {
                 foreach (var captura in movimientoSeleccionado.capturas) {
-                    GameObject casilla = tableroComponente.getTablero()[captura.Item1, captura.Item2];
-                    Casilla casillaComponente = casilla.GetComponent<Casilla>();
-
-                    Ficha fichaCapturada = casillaComponente.getFicha();
-                    casillaComponente.liberarCasilla();
-                    if (fichaCapturada != null) {
-                        Destroy(fichaCapturada.gameObject);
-                    }
+                    destruirFicha(captura.Item1, captura.Item2);
                 }
             }
 
@@ -239,14 +242,24 @@ public class Ficha : MonoBehaviour {
                 movimientos.Add(movimiento);
             }
 
-            mostrarMovimiento(movimiento);
-
             calcularMovimientosPosiblesDama(tablero, (origen.fila + aumentoFila, origen.columna + aumentoColumna), aumentoFila, aumentoColumna, movimiento, movimientoDamaLuegoDeComer, movimientoEnLaMismaDireccion);
 
             if(movimientoDamaLuegoDeComer && movimientoEnLaMismaDireccion) {
                 calcularMovimientosPosiblesDama(tablero, (origen.fila + aumentoFila, origen.columna + aumentoColumna), -aumentoFila, aumentoColumna, movimiento, movimientoDamaLuegoDeComer, false);
                 calcularMovimientosPosiblesDama(tablero, (origen.fila + aumentoFila, origen.columna + aumentoColumna), aumentoFila, -aumentoColumna, movimiento, movimientoDamaLuegoDeComer, false);
             }
+        }
+    }
+
+    void destruirFicha(int fila, int columna) {
+        GameObject casilla = tableroComponente.getTablero()[fila, columna];
+        Casilla casillaComponente = casilla.GetComponent<Casilla>();
+
+        Ficha fichaCapturada = casillaComponente.getFicha();
+        casillaComponente.liberarCasilla();
+
+        if (fichaCapturada != null) {
+            Destroy(fichaCapturada.gameObject);
         }
     }
 
@@ -331,7 +344,6 @@ public class Ficha : MonoBehaviour {
                 bool estaOcupada = casillaOcupada(filaSiguiente, columnaAnterior);
 
                 if (!estaOcupada) {
-                    tablero[filaSiguiente, columnaAnterior].GetComponent<Renderer>().material.color = Color.blue;
                     movimientos.Add(new Movimiento(filaSiguiente, columnaAnterior));
                 } else {
                     comprobarComerFicha(tablero, (posicionFila, posicionColumna), (filaSiguiente, columnaAnterior), (esBlanca ? filaSiguiente + 1 : filaSiguiente - 1, columnaAnterior - 1) );

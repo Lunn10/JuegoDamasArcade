@@ -8,7 +8,7 @@ public class GenerarTablero : MonoBehaviour {
     private int filas = 10;            // Número de filas
     private int columnas = 10;         // Número de columnas
     private float distancia = 1f;     // Distancia entre casillas (puedes ajustarlo según el tamaño del prefab)
-    private int cantidadFichas = 5;
+    private int cantidadFichas = 15;
     string turnoActual = "BLANCAS";
     private GameObject[,] tablero;
     private int fichasColocadasBlancas;
