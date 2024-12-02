@@ -8,7 +8,7 @@ public class GenerarTablero : MonoBehaviour {
     private int filas = 10;            // Número de filas
     private int columnas = 10;         // Número de columnas
     private float distancia = 1f;     // Distancia entre casillas (puedes ajustarlo según el tamaño del prefab)
-    private int cantidadFichas = 15;
+    private int cantidadFichas = 5;
     string turnoActual = "BLANCAS";
     private GameObject[,] tablero;
     private int fichasColocadasBlancas;
@@ -44,13 +44,13 @@ public class GenerarTablero : MonoBehaviour {
                         GameObject ficha = Instantiate(fichaPrefab, posicion + new Vector3(0, 0.3f, 0), Quaternion.identity, transform);
                         ficha.GetComponent<Ficha>().setPosicion(filaActual, columnaActual);
                         ficha.GetComponent<Ficha>().fichaBlanca();
-                        casillaActual.GetComponent<Casilla>().setFichaBlanca();
+                        casillaActual.GetComponent<Casilla>().setFicha(ficha.GetComponent<Ficha>());
                         fichasColocadasBlancas++;
                     } else if(filaActual >= 7 && fichasColocadasNegras < cantidadFichas) {
                         GameObject ficha = Instantiate(fichaPrefab, posicion + new Vector3(0, 0.3f, 0), Quaternion.identity, transform);
                         ficha.GetComponent<Renderer>().material = materialNegro;
                         ficha.GetComponent<Ficha>().setPosicion(filaActual, columnaActual);
-                        casillaActual.GetComponent<Casilla>().setFichaNegra();
+                        casillaActual.GetComponent<Casilla>().setFicha(ficha.GetComponent<Ficha>());
                         fichasColocadasNegras++;                        
                     }
                 }
