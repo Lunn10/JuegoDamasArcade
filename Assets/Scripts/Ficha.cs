@@ -9,7 +9,6 @@ public class Movimiento {
     public List<Tuple<int, int>> capturas { get; set; }
     public List<Tuple<int, int>> movimientosIntermedios { get; set; }
     public (int fila, int columna) ? posicionAnteriorDama { get; set; }
-
     public Movimiento() {
         capturas = new List<Tuple<int, int>>();
         movimientosIntermedios = new List<Tuple<int, int>>();
@@ -227,6 +226,8 @@ public class Ficha : MonoBehaviour {
                 if (movimientoAnterior.posicionAnteriorDama.HasValue) {
                     movimiento.movimientosIntermedios.Add(new Tuple<int, int>(movimientoAnterior.posicionAnteriorDama.Value.fila, movimientoAnterior.posicionAnteriorDama.Value.columna));
                 }
+
+                movimiento.posicionAnteriorDama = (origen.fila, origen.columna);
             }
 
             if(!movimientoDamaLuegoDeComer) {
@@ -254,7 +255,7 @@ public class Ficha : MonoBehaviour {
         if (fichaCapturada != null) {
             Destroy(fichaCapturada.gameObject);
             
-            ParticleSystem particulasInstanciadas = Instantiate(particulas, transform.position, Quaternion.identity);
+            ParticleSystem particulasInstanciadas = Instantiate(particulas, fichaCapturada.gameObject.transform.position, Quaternion.identity);
             particulasInstanciadas.GetComponent<ParticleSystemRenderer>().material.color = fichaRenderer.material.color;
             Destroy(particulasInstanciadas.gameObject, particulasInstanciadas.main.duration);
         }
