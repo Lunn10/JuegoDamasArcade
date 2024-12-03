@@ -92,13 +92,6 @@ public class Ficha : MonoBehaviour {
         }
     }
 
-    void OnDestroy() {
-
-        ParticleSystem particulasInstanciadas = Instantiate(particulas, transform.position, Quaternion.identity);
-        particulasInstanciadas.GetComponent<ParticleSystemRenderer>().material.color = fichaRenderer.material.color;
-        Destroy(particulasInstanciadas, particulasInstanciadas.main.duration);
-    }
-
     public void fichaBlanca() {
         esBlanca = true;
     }
@@ -260,6 +253,10 @@ public class Ficha : MonoBehaviour {
 
         if (fichaCapturada != null) {
             Destroy(fichaCapturada.gameObject);
+            
+            ParticleSystem particulasInstanciadas = Instantiate(particulas, transform.position, Quaternion.identity);
+            particulasInstanciadas.GetComponent<ParticleSystemRenderer>().material.color = fichaRenderer.material.color;
+            Destroy(particulasInstanciadas.gameObject, particulasInstanciadas.main.duration);
         }
     }
 
