@@ -27,13 +27,19 @@ public class Movimiento {
         Debug.Log("Agregando captura: " + fila + ", " + columna);
         capturas.Add(new Tuple<int, int>(fila, columna));
     }
+
+    public void agregarMovimientoIntermedio(int fila, int columna) {
+        if (!movimientosIntermedios.Exists(m => m.Item1 == fila && m.Item2 == columna)) {
+            movimientosIntermedios.Add(new Tuple<int, int>(fila, columna));
+        }
+    }
 }
 
 public class Ficha : MonoBehaviour {
     private int posicionColumna;
     private int posicionFila;
     private bool esBlanca = false;
-    private bool esDama = false;
+    private bool esDama = true;
     private Renderer fichaRenderer;
     private Color colorOriginal;
     private GenerarTablero tableroComponente;
@@ -41,9 +47,11 @@ public class Ficha : MonoBehaviour {
     private Vector3 posicionOriginal; // Posición original de la ficha
     private bool estaSiendoArrastrada = false; // Bandera para saber si la ficha está siendo arrastrada
     public ParticleSystem particulas;
+    private LineRenderer lineRenderer;
 
     void Start() {
         fichaRenderer = GetComponent<Renderer>();
+        lineRenderer = GetComponent<LineRenderer>();
         colorOriginal = fichaRenderer.material.color;
         tableroComponente = GetComponentInParent<GenerarTablero>();
     }
@@ -223,8 +231,12 @@ public class Ficha : MonoBehaviour {
                     movimiento.capturas.Add(captura);
                 }
 
+                foreach (var movimientoIntermedio in movimientoAnterior.movimientosIntermedios) {
+                    movimiento.agregarMovimientoIntermedio(movimientoIntermedio.Item1, movimientoIntermedio.Item2);
+                }
+
                 if (movimientoAnterior.posicionAnteriorDama.HasValue) {
-                    movimiento.movimientosIntermedios.Add(new Tuple<int, int>(movimientoAnterior.posicionAnteriorDama.Value.fila, movimientoAnterior.posicionAnteriorDama.Value.columna));
+                    movimiento.agregarMovimientoIntermedio(movimientoAnterior.posicionAnteriorDama.Value.fila, movimientoAnterior.posicionAnteriorDama.Value.columna);
                 }
 
                 movimiento.posicionAnteriorDama = (origen.fila, origen.columna);
@@ -291,11 +303,15 @@ public class Ficha : MonoBehaviour {
                         movimiento.capturas.Add(captura);
                     }
 
+                    foreach (var movimientoIntermedio in movimientoAnterior.movimientosIntermedios) {
+                        movimiento.movimientosIntermedios.Add(movimientoIntermedio);
+                    }
+
                     if (movimientoAnterior.posicionAnteriorDama.HasValue) {
-                        movimiento.movimientosIntermedios.Add(new Tuple<int, int>(
+                        movimiento.agregarMovimientoIntermedio(
                             movimientoAnterior.posicionAnteriorDama.Value.fila, 
                             movimientoAnterior.posicionAnteriorDama.Value.columna
-                        ));
+                        );
                     }
 
                     if (movimientos.Contains(movimientoAnterior)) {
@@ -303,6 +319,7 @@ public class Ficha : MonoBehaviour {
                     }
                 }
 
+                movimiento.agregarMovimientoIntermedio(libre.fila, libre.columna);
                 movimiento.posicionAnteriorDama = (libre.fila, libre.columna);
 
                 movimientos.Add(movimiento);
@@ -382,7 +399,7 @@ public class Ficha : MonoBehaviour {
                 }
 
                 foreach (var movimientoIntermedio in movimientoAnterior.movimientosIntermedios) {
-                    movimiento.movimientosIntermedios.Add(movimientoIntermedio);
+                    movimiento.agregarMovimientoIntermedio(movimientoIntermedio.Item1, movimientoIntermedio.Item2);
                 }
 
                 if (movimientos.Contains(movimientoAnterior)) {
@@ -417,12 +434,29 @@ public class Ficha : MonoBehaviour {
 
     void mostrarMovimientosPosibles() {
         GameObject[,] tablero = tableroComponente.getTablero();
+        bool listaFiltrada = false;
+
         foreach (var movimiento in movimientos) {
             tablero[movimiento.fila, movimiento.columna].GetComponent<Renderer>().material.color = Color.blue;
 
-            foreach (var movimientoIntermedio in movimiento.movimientosIntermedios) {
-                tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].GetComponent<Renderer>().material.color = Color.green;
+            if(!listaFiltrada) {
+                lineRenderer.positionCount = movimiento.movimientosIntermedios.Count + 1;
+                lineRenderer.SetPosition(0, tablero[posicionFila, posicionColumna].transform.position + Vector3.up);
             }
+
+            int posicionActual = 1;
+
+            foreach (var movimientoIntermedio in movimiento.movimientosIntermedios) {
+                if(!listaFiltrada) {
+                    lineRenderer.SetPosition(posicionActual, tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].transform.position + new Vector3(0, 1f, 0));
+                }
+                
+                tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].GetComponent<Renderer>().material.color = Color.green;
+            
+                posicionActual++;
+            }
+
+            listaFiltrada = true;
         }
     }
 
@@ -448,7 +482,9 @@ public class Ficha : MonoBehaviour {
                 tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].GetComponent<Renderer>().material.color = Color.red;
             }
         }
+
         movimientos.Clear();
+        lineRenderer.positionCount = 0;
     }
 
     public void mostrarMovimiento(Movimiento movimiento) {
