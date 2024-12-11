@@ -443,13 +443,13 @@ public class Ficha : MonoBehaviour {
             posicionAnterior = tablero[posicionFila, posicionColumna].transform.position + Vector3.up * 0.5f;
 
             foreach (var movimientoIntermedio in movimiento.movimientosIntermedios) {
-                dibujarLinea(posicionAnterior, tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].transform.position + Vector3.up * 0.5f);
+                //dibujarLinea(posicionAnterior, tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].transform.position + Vector3.up * 0.5f);
                 posicionAnterior = tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].transform.position + new Vector3(0, 1f, 0);
-//                tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].GetComponent<Renderer>().material.color = Color.green;
+                tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].GetComponent<Renderer>().material.color = Color.green;
             }
 
             foreach (var captura in movimiento.capturas) {
-                GameObject cruzEliminarFichaInstanciada = Instantiate(cruzEliminarFicha, tablero[captura.Item1, captura.Item2].transform.position + Vector3.up * 0.5f, Quaternion.Euler(90f, 0f, 0f));
+                GameObject cruzEliminarFichaInstanciada = Instantiate(cruzEliminarFicha, tablero[captura.Item1, captura.Item2].transform.position + Vector3.up * 1f, Quaternion.Euler(90f, 0f, 0f));
                 crucesInstanciadas.Add(cruzEliminarFichaInstanciada);
             }
         }
@@ -462,8 +462,8 @@ public class Ficha : MonoBehaviour {
         lineasInstanciadas.Add(lineObject);
         lineRenderer.positionCount = 2;
         material.SetVector("_Direccion", fin - inicio);
-        lineRenderer.startWidth = 1f;
-        lineRenderer.endWidth = 1f;
+        lineRenderer.startWidth = 0.2f;
+        lineRenderer.endWidth = 0.2f;
         lineRenderer.SetPosition(0, inicio);
         lineRenderer.SetPosition(1, fin);
     }

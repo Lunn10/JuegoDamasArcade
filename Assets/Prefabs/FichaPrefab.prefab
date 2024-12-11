@@ -125,4 +125,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   particulas: {fileID: 8744794814675978597, guid: 7d7b7735eac2f3f478328122e6f54e18, type: 3}
   contenedorLinea: {fileID: 7463677980929438628, guid: 2f840290042f20d4eb3f40c5c1a8e6de, type: 3}
-  cruzEliminarFicha: {fileID: 919132149155446097, guid: 574fac3fb3749254e98bf169becf4aa8, type: 3}
+  cruzEliminarFicha: {fileID: 2691129877072222739, guid: 50a1343386ecc144ba37bf7ba2f3c794, type: 3}
