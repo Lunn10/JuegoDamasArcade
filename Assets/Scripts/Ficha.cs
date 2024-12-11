@@ -47,11 +47,13 @@ public class Ficha : MonoBehaviour {
     private Vector3 posicionOriginal; // Posición original de la ficha
     private bool estaSiendoArrastrada = false; // Bandera para saber si la ficha está siendo arrastrada
     public ParticleSystem particulas;
-    private LineRenderer lineRenderer;
+    public GameObject contenedorLinea;
+    public GameObject cruzEliminarFicha;
+    private List<GameObject> lineasInstanciadas = new List<GameObject>();
+    private List<GameObject> crucesInstanciadas = new List<GameObject>();
 
     void Start() {
         fichaRenderer = GetComponent<Renderer>();
-        lineRenderer = GetComponent<LineRenderer>();
         colorOriginal = fichaRenderer.material.color;
         tableroComponente = GetComponentInParent<GenerarTablero>();
     }
@@ -434,30 +436,36 @@ public class Ficha : MonoBehaviour {
 
     void mostrarMovimientosPosibles() {
         GameObject[,] tablero = tableroComponente.getTablero();
-        bool listaFiltrada = false;
+        Vector3 posicionAnterior = Vector3.zero;
 
         foreach (var movimiento in movimientos) {
             tablero[movimiento.fila, movimiento.columna].GetComponent<Renderer>().material.color = Color.blue;
-
-            if(!listaFiltrada) {
-                lineRenderer.positionCount = movimiento.movimientosIntermedios.Count + 1;
-                lineRenderer.SetPosition(0, tablero[posicionFila, posicionColumna].transform.position + Vector3.up);
-            }
-
-            int posicionActual = 1;
+            posicionAnterior = tablero[posicionFila, posicionColumna].transform.position + Vector3.up * 0.5f;
 
             foreach (var movimientoIntermedio in movimiento.movimientosIntermedios) {
-                if(!listaFiltrada) {
-                    lineRenderer.SetPosition(posicionActual, tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].transform.position + new Vector3(0, 1f, 0));
-                }
-                
-                tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].GetComponent<Renderer>().material.color = Color.green;
-            
-                posicionActual++;
+                dibujarLinea(posicionAnterior, tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].transform.position + Vector3.up * 0.5f);
+                posicionAnterior = tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].transform.position + new Vector3(0, 1f, 0);
+//                tablero[movimientoIntermedio.Item1, movimientoIntermedio.Item2].GetComponent<Renderer>().material.color = Color.green;
             }
 
-            listaFiltrada = true;
+            foreach (var captura in movimiento.capturas) {
+                GameObject cruzEliminarFichaInstanciada = Instantiate(cruzEliminarFicha, tablero[captura.Item1, captura.Item2].transform.position + Vector3.up * 0.5f, Quaternion.Euler(90f, 0f, 0f));
+                crucesInstanciadas.Add(cruzEliminarFichaInstanciada);
+            }
         }
+    }
+
+    void dibujarLinea(Vector3 inicio, Vector3 fin) {
+        GameObject lineObject = Instantiate(contenedorLinea, inicio, Quaternion.identity);
+        LineRenderer lineRenderer = lineObject.GetComponent<LineRenderer>();
+        Material material = lineRenderer.GetComponent<Renderer>().material;
+        lineasInstanciadas.Add(lineObject);
+        lineRenderer.positionCount = 2;
+        material.SetVector("_Direccion", fin - inicio);
+        lineRenderer.startWidth = 1f;
+        lineRenderer.endWidth = 1f;
+        lineRenderer.SetPosition(0, inicio);
+        lineRenderer.SetPosition(1, fin);
     }
 
     void debuggearCapturas(Movimiento movimiento) {
@@ -483,8 +491,15 @@ public class Ficha : MonoBehaviour {
             }
         }
 
+        foreach (var linea in lineasInstanciadas) {
+            Destroy(linea);
+        }
+
+        foreach (var cruz in crucesInstanciadas) {
+            Destroy(cruz);
+        }
+
         movimientos.Clear();
-        lineRenderer.positionCount = 0;
     }
 
     public void mostrarMovimiento(Movimiento movimiento) {
