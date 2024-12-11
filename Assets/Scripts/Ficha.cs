@@ -39,7 +39,7 @@ public class Ficha : MonoBehaviour {
     private int posicionColumna;
     private int posicionFila;
     private bool esBlanca = false;
-    private bool esDama = true;
+    private bool esDama = false;
     private Renderer fichaRenderer;
     private Color colorOriginal;
     private GenerarTablero tableroComponente;
